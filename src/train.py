@@ -15,6 +15,9 @@ from src import data as lc_data
 from src import network
 from src.l3c import timer
 
+import random
+random.seed(696)
+from tqdm import tqdm
 
 def plot_bpsp(
         plotter: tensorboard.SummaryWriter, bits: network.Bits,
@@ -156,7 +159,7 @@ def save(compressor: network.Compressor,
               help="path to store tensorboard run data/plots.")
 @click.option("--epochs", type=int, default=50, show_default=True,
               help="Number of epochs to run.")
-@click.option("--resblocks", type=int, default=5, show_default=True,
+@click.option("--resblocks", type=int, default=3, show_default=True,
               help="Number of resblocks to use.")
 @click.option("--n-feats", type=int, default=64, show_default=True,
               help="Size of feature vector/channel width.")
@@ -244,14 +247,16 @@ def main(
             T.RandomCrop(crop),
         ]),
     )
+    train_dataset_subset = torch.utils.data.Subset(train_dataset, random.sample(range(len(train_dataset.filenames)), len(train_dataset.filenames)//3))
+
     dataset_index = checkpoint.get("index") or 0
     train_sampler = lc_data.PreemptiveRandomSampler(
         checkpoint.get("sampler_indices") or torch.randperm(
-            len(train_dataset)).tolist(),
+            len(train_dataset_subset)).tolist(),
         dataset_index,
     )
     train_loader = data.DataLoader(
-        train_dataset, batch_size=batch, sampler=train_sampler,
+        train_dataset_subset, batch_size=batch, sampler=train_sampler,
         num_workers=workers, drop_last=True,
     )
     print(f"Loaded training dataset with {len(train_loader)} batches "
@@ -278,11 +283,11 @@ def main(
     if eval_iters == 0:
         eval_iters = len(train_loader)
 
-    for epoch in range(starting_epoch, epochs):
+    for epoch in tqdm(range(starting_epoch, epochs)):
         with tensorboard.SummaryWriter(plot) as plotter:
             # input: List[Tensor], downsampled images.
             # sizes: N scale 4
-            for _, inputs in train_loader:
+            for _, inputs in tqdm(train_loader):
                 train_iter += 1
                 batch_size = inputs[0].shape[0]
 

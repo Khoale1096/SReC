@@ -70,7 +70,7 @@ def non_shared_get_K(Kp: int, C: int, num_params: int) -> int:
 
 # --------------------------------------------------------------------------------
 class DiscretizedMixLogisticLoss(nn.Module):
-    def __init__(self, rgb_scale: bool, x_min=0, x_max=255, L=256):
+    def __init__(self, rgb_scale: bool, x_min=-128, x_max=255, L=256):
         """
         :param rgb_scale: Whether this is the loss for the RGB scale. In that case,
             use_coeffs=True
