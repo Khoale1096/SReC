@@ -9,7 +9,7 @@ import torch.utils.data as data
 from torch.nn import functional as F
 
 from src import configs, util
-
+import colour
 
 class PreemptiveRandomSampler(data.Sampler):
     def __init__(self, indices: List[int], index: int) -> None:
@@ -92,6 +92,7 @@ class ImageFolder(data.Dataset):
         else:
             nchannel = len(pic.mode)
         img = img.view(pic.size[1], pic.size[0], nchannel)
+        img = torch.from_numpy(colour.RGB_to_YCoCg(img.detach().cpu().numpy()))
         # put it from HWC to CHW format
         # yikes, this transpose takes 80% of the loading time/CPU
         img = img.transpose(0, 1).transpose(0, 2).contiguous()
