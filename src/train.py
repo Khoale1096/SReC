@@ -247,16 +247,16 @@ def main(
             T.RandomCrop(crop),
         ]),
     )
-    train_dataset_subset = torch.utils.data.Subset(train_dataset, random.sample(range(len(train_dataset.filenames)), len(train_dataset.filenames)//3))
+    # train_dataset_subset = torch.utils.data.Subset(train_dataset, random.sample(range(len(train_dataset.filenames)), len(train_dataset.filenames)//2))
 
     dataset_index = checkpoint.get("index") or 0
     train_sampler = lc_data.PreemptiveRandomSampler(
         checkpoint.get("sampler_indices") or torch.randperm(
-            len(train_dataset_subset)).tolist(),
+            len(train_dataset)).tolist(),
         dataset_index,
     )
     train_loader = data.DataLoader(
-        train_dataset_subset, batch_size=batch, sampler=train_sampler,
+        train_dataset, batch_size=batch, sampler=train_sampler,
         num_workers=workers, drop_last=True,
     )
     print(f"Loaded training dataset with {len(train_loader)} batches "
